@@ -1,0 +1,99 @@
+#+TITLE: Papers from 2017
+#+DESCRIPTION:
+#+KEYWORDS:
+#+STARTUP:  content
+#+OPTIONS: toc:1 H:4 num:1
+
+- [[wiki:index][Index]]
+  
+* [[https://eprint.iacr.org/2016/208][Constant-Round Asynchronous Multi-Party Computation Based on One-Way Functions (Sandro Coretti and Juan Garay and Martin Hirt and Vassilis Zikas)]]
+Presented at ASIACRYPT 2016.
+** Short Description
+Constant-round MPC in a setting where there is a bound on the delivery time but it is unknown.
+
+** Abstract
+Secure multi-party computation (MPC) allows several mutually distrustful parties to securely compute a joint function of their inputs and exists in two main variants: In *synchronous* MPC parties are connected by a synchronous network with a global clock, and protocols proceed in *rounds* with strong delivery guarantees, whereas *asynchronous* MPC protocols can be deployed even in networks that deliver messages in an arbitrary order and impose arbitrary delays on them.
+
+The two models---synchronous and asynchronous---have to a large extent developed in parallel with results on both feasibility and asymptotic efficiency improvements in either track. The most notable gap in this parallel development is with respect to round complexity. In particular, although under standard assumptions on a synchronous communication network (availability of secure channels and broadcast), synchronous MPC protocols with (exact) constant rounds have been constructed, to the best of our knowledge, thus far no constant-round asynchronous MPC protocols are known, with the best protocols requiring a number of rounds that is linear in the multiplicative depth of the arithmetic circuit computing the desired function.
+
+In this work we close this gap by providing the first constant-round asynchronous MPC protocol. Our protocol is optimally resilient (i.e., it tolerates up to $t\lt n/3$ corrupted parties), adaptively secure, and makes black-box use of a pseudo-random function. It works under the standard network assumptions for protocols in the asynchronous MPC setting, namely, a complete network of point-to-point (secure) asynchronous channels with eventual delivery and asynchronous Byzantine agreement (aka consensus). We provide formal definitions of these primitives and a proof of security in the Universal Composability framework.
+
+
+** My Summary
+
+The authors consider MPC in a setting in which there is a bound on the network delivery time, but it is known by the protocol.
+Such setting is called /asynchronous with eventual delivery/, and part of the contribution is formalizing such notion on top of the UC framework by Canetti [[[coretti-1][1]]].
+The main challenge is that the original UC framework is message-driven and as such it is inherently /fully asynchronous/ (i.e. the adversary can delay messages indefinitely).
+The authors introduce eventual delivery by forcing the adversary to input a bound before the protocol starts, and the functionality delivers messages once they have been requested as many times as this bound mandates (sequential messages are queued).
+
+The authors aim at a constant-round protocol.
+Their construction is based on the existence of PRFs and tolerates $t\lt n/3$ corruptions.
+At a high level, their construction follows the BMR template for constant-round multiparty computation where the parties use an existing MPC protocol to generate a garbled circuit (Figure 4) and then perform local computation (Figure 5).
+In a bit more detail, the parties use the BKR protocol [[[coretti-2][2]]] to compute a garbled version of the circuit (in fact, they use an optimization from Damgard and Ishai [[[coretti-3][3]]] that removes the cipher from the oblivious evaluation using Shamir SS).
+The garbling consists of computing the typical garbled table for each gate except that instead of encrypting the message (or wire value), the parties secret-share it and encrypt /locally/ each share.
+This approach is very useful given the asynchronous nature of the protocol.
+      
+*** References
+1) <<coretti-1>>Canetti, R.: Universally composable security: A new paradigm for cryptographic protocols. In: 42nd FOCS. pp. 136-145. IEEE Computer Society Press, Las Vegas, Nevada, USA (Oct 14-17, 2001).
+2) <<coretti-2>>Ben-Or, M., Kelmer, B., Rabin, T.: Asynchronous secure computations with optimal resilience (extended abstract). In: PODC. pp. 183-192 (1994).
+3) <<coretti-3>>Damgård, I., Ishai, Y.: Constant-round multiparty computation using a black-box pseudorandom generator. In: Shoup, V. (ed.) CRYPTO. Lecture Notes in Computer Science, vol. 3621, pp. 378-394. Springer (2005).   
+
+* [[https://eprint.iacr.org/2016/944][High-Throughput Secure Three-Party Computation for Malicious Adversaries and an Honest Majority (Jun Furukawa, Yehuda Lindell, Ariel Nof and Or Weinstein)]]
+Presented at EUROCRYPT 2016.
+** Short Description
+Actively Secure Three-party MPC with abort.
+
+** Abstract
+In this paper, we describe a new protocol for secure three-party computation of any functionality, with an honest majority anda malicious adversary.
+Our protocol has both an information-theoretic and computational variant, and is distinguished by extremely low communication complexity and very simple computation.
+We start from the recent semi-honest protocol of Araki et al. (ACM CCS 2016) in which the parties communicate only a single bit per AND gate, and modify it to be secure in the presence of malicious adversaries.
+Our protocol follows the paradigm of first constructing Beaver multiplication triples and then using them to verify that circuit gates are correctly computed.
+As in previous work (e.g., the so-called TinyOT and SPDZ protocols), we rely on the cut-and-choose paradigm to verify that triples are correctly constructed.
+We are able to utilize the fact that at most one of three parties is corrupted in order to construct an extremely simple and efficient method of constructing such triples.
+We also present an improved combinatorial analysis for this cut-and-choose which can be used to achieve improvements in other protocols using this approach.
+
+** My Summary
+This paper builds on top of [[[furukawa-1][1]]] to obtain a protocol with active security in the honest majority setting.
+Their protocol is phrased in the boolean setting, but /I believe/ that it also works over the ring $\mathbb Z_{2^k}$, which makes it the first protocol at that time in achieving such result.
+
+The main insight of this work is that the biggest challenge in making the protocol from [[[furukawa-1][1]]] actively secure is handling multiplication gates.
+This is because in the honest majority setting, and for the particular secret sharing scheme used, output gates are not a problem at all (in contrast to the dishonest majority setting in which you need some mechanism like MACs to ensure that parties open values correctly).
+The authors then propose a mechanism for producing correct multiplication triples which consists essentially in generating shares of random elements, multiply them using the passively secure multiplication from [[[furukawa-1][1]]], and check the correctness of some of them in a cut-and-choose way so that the remaining triples are guaranteed to be correct with high probability.
+According to the authors, this analysis is new with respect to the previous one from [[[furukawa-2][2]]].
+It is important to note though that this is only efficient when preprocessing many multiplication triples, say in the order of $2^{20}$.
+
+Once you have correct multiplication triples, you can use them to perform the multiplication in the online phase, or you can use them to check the result of a passively secure multiplication, like the one in [[[furukawa-1][1]]].
+The authors choose to follow the second approach: in the online phase they multiply using the protocol from [[[furukawa-1][1]]], which is passively secure but is very efficient.
+Then, at the end of the protocol right before opening the result, the parties use the triples to check that the multiplications of the online phase were done correctly.
+This has many benefits over using the triples directly to multiply: The multiplication protocol from [[[furukawa-1][1]]] is cheaper, involving olne 1-bit per party (whereas using triples involves twice as much).
+Furthermore, all the checks can be done in parallel, thus adding only one round to the whole protocol.
+Additionally, due to the way that the check works, its communication complexity can be made independent of the number of multiplications to check (basically it is because the check consists of verifying that several parties have the same "view" of some elements, due to the replicated nature of the secret-sharing scheme, and this can be done by simply hashing the views).
+
+Finally, I have to say that their protocol is quite efficient.
+Citing them directly: "with a statistical error of $2^{-40}$ each party needs to send only 10 bits per AND gate to one other party; for $2^{-80}$ this rises to only 16 bits per AND gate".
+      
+*** References
+1) <<furukawa-1>>Araki, T., Furukawa, J., Lindell, Y., Nof, A., Ohara, K.: High-throughput semi-honest secure three-party computation with an honest majority. In: 23rd ACM CCS 2016.
+2) <<furukawa-2>>Burra, S.S., Larraia, E., Nielsen, J.B., Nordholt, P.S., Orlandi, C., Orsini, E., Scholl, P., Smart, N.P.: High performance multi-party computation for binary circuits based on oblivious transfer.
+ 
+* [[https://eprint.iacr.org/2016/768][High-Throughput Semi-Honest Secure Three-Party Computation with an Honest Majority (Toshinori Araki and Jun Furukawa and Yehuda Lindell and Ariel Nof and Kazuma Ohara)]]
+Presented at CCS 2016.
+** Short Description
+Three-party MPC with cheap semi-honest multiplications.
+
+** Abstract
+In this paper, we describe a new information-theoretic protocol (and a computationally-secure variant) for secure {\em three}-party computation with an honest majority. The protocol has very minimal computation and communication; for Boolean circuits, each party sends only a single bit for every AND gate (and nothing is sent for XOR gates). Our protocol is (simulation-based) secure in the presence of semi-honest adversaries, and achieves privacy in the client/server model in the presence of malicious adversaries.
+
+On a cluster of three 20-core servers with a 10Gbps connection, the implementation of our protocol carries out over \textit{1.3 million} AES computations per second, which involves processing over \textit{7 billion gates per second}. In addition, we developed a Kerberos extension that replaces the ticket-granting-ticket encryption on the Key Distribution Center (KDC) in MIT-Kerberos with our protocol, using keys/ passwords that are shared between the servers. This enables the use of Kerberos while protecting passwords. Our implementation is able to support a login storm of over 35,000 logins per second, which suffices even for very large organizations. Our work demonstrates that high-throughput secure computation is possible on standard hardware.
+  
+** My Summary
+I didn't read this paper in detail.
+The authors propose a secret sharing scheme which resembles replicated SS, although it is a bit different.
+To share a secret $v\in\mathbb{Z}_{2^k}$ in their scheme, each party $P_i$ for $i=1,2,3$ has a masked version of $x$, $a_i=x_i-v\bmod 2^k$, where the $x_i$'s are random but conditioned on $x_1+x_2+x_3=0\bmod 2^k$
+$P_i$ also has the 'key' $x_{i+1}$.
+It is easy to see that any pair of parties can reconstruct the secret, but no single party learns anything about it.
+
+The scheme above is clearly linearly homomorphic.
+To handle multiplications, it is assumed that the parties have correlated randomness $\alpha,\beta,\gamma$ such that $\alpha+\beta+\gamma = 0$.
+These can be preprocessed easily by pre-agreeing on certain keys for a PRF (e.g. AES) and then using the PRF in a non-interactive manner to generate the correlated randomness.
+The multiplication itself is rather short and I suggest reading it directly from the paper in Section 2.3.

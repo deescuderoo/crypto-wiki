@@ -1,0 +1,12 @@
+#+TITLE: Recommended Reading
+#+DESCRIPTION:
+#+KEYWORDS:
+#+STARTUP:  content
+#+OPTIONS: toc:nil H:2 num:nil
+
+Below I list some of the papers I've read/skimmed at some point.
+Some of them have a small summary written by me, which helps me remember what I was thinking back then when I read them.
+
+* [[wiki:2019][2019]]
+* [[wiki:2018][2018]]
+* [[wiki:2017][2017]]

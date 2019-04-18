@@ -1,0 +1,35 @@
+#+TITLE: Papers from 2019
+#+DESCRIPTION:
+#+KEYWORDS:
+#+STARTUP:  content
+#+OPTIONS: toc:1 H:4 num:1
+
+- [[wiki:index][Index]]
+
+* [[https://eprint.iacr.org/2019/179][Synchronous, with a Chance of Partition Tolerance (Yue Guo and Rafael Pass and Elaine Shi)]]
+** Short Description
+How to build MPC (and other primitives) in a network where some parties may go offline arbitrarily at each round
+** Abstract
+Murphy, Murky, Mopey, Moody, and Morose decide to write a paper together over the Internet and submit it to the prestigious CRYPTO'19 conference that has the most amazing PC. 
+They encounter a few problems. 
+First, not everyone is online every day: some are lazy and go skiing on Mondays; others cannot use git correctly and they are completely unaware that they are losing messages. 
+Second, a small subset of the co-authors may be secretly plotting to disrupt the project (e.g., because they are writing a competing paper in stealth). 
+Suppose that each day, sufficiently many honest co-authors are online (and use git correctly); moreover, suppose that messages checked into git on Monday can be correctly received by honest and online co-authors on Tuesday or any future day. 
+Can the honest co-authors successfully finish the paper in a small number of days such that they make the CRYPTO deadline; and perhaps importantly, can all the honest co-authors, including even those who are lazy and those who sometimes use git incorrectly, agree on the final theorem?
+** My Summary
+The authors consider a setting in which the adversary may point to some honest parties at each round and set them offline, meaning that these parties do not send nor receives messages on that round.
+For the other parties the network acts synchronously: there is a known network delay $\Delta$ within which all sent messages are guaranteed to arrive.
+They formalize this model in a UC-like way.
+They achieve MPC in this setting assuming that at least half of the parties are honest and online at each round (although the set can be different from round to round).
+Furthermore, they show that this is the optimal threshold: No protocol can be robust against an adversary that delays more than half of the parties.
+Intuitively, this is because in this scenario you may end up with two honest minorities that are isolated, or partitioned (e.g. one that is synchronous and the other one that is asynchronous), and they should be able to reach some sort of agreement without talking to each other.
+
+They get MPC by first getting BA (Byzantine Agreement).
+Once you have BA, MPC can be obtained by assuming the existence of a Threshold Multi-FHE scheme TODO(Ref) and use BA to distribute encrypted inputs and ZK proofs of correctness.
+To get BA, they take the following approach:
+1) Get reliable broadcast (this one is like BA, except it gives you liveness only for the nodes that are online when it gets triggered)
+2) Use reliable broadcast to get VSS
+3) Use the VSS as a commitment scheme to obtain a leader election protocol. This is done by letting each party cast a random vote, taking the addition of all votes to be the actual vote for some party. The party with the largest vote becomes the leader. To make sure that all parties agree on the leader without actually using BA (which would be circular), they .... TODO
+4) Get BA like in TODO(Ref) by doing a two-round echo broadcast where parties send votes, and use the leader for the cases in which there are no majority of votes for a particular bit.
+
+
