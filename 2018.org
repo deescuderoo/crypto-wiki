@@ -76,6 +76,57 @@ The gap is significant for a large number of parties, with this protocol being a
 3) <<chida-3>>Y. Lindell and A. Nof. A Framework for Constructing Fast MPC over Arithmetic Circuits with Malicious Adversaries and an Honest-Majority. In ACM CCS, 2017.
    
    
+* [[https://eprint.iacr.org/2018/762][Generalizing the SPDZ Compiler For Other Protocols (Toshinori Araki and Assi Barak and Jun Furukawa and Marcel Keller and Yehuda Lindell and Kazuma Ohara and Hikaru Tsuchida)]]
+Presented at CCS 2018 ([[https://www.youtube.com/watch?v%3D0mIqn8TqzmA][Video here]])
+
+** Short Description
+Compilation from high-level programs to MPC circuits
+
+** Abstract
+Protocols for secure multiparty computation (MPC) enable a set of mutually distrusting parties to compute an arbitrary function of their inputs while preserving basic security properties like privacy and correctness. The study of MPC was initiated in the 1980s where it was shown that any function can be securely computed, thus demonstrating the power of this notion. However, these proofs of feasibility were theoretical in nature and it is only recently that MPC protocols started to become efficient enough for use in practice. Today, we have protocols that can carry out large and complex computations in very reasonable time (and can even be very fast, depending on the computation and the setting). Despite this amazing progress, there is still a major obstacle to the adoption and use of MPC due to the huge expertise needed to design a specific MPC execution. In particular, the function to be computed needs to be represented as an appropriate Boolean or arithmetic circuit, and this requires very specific expertise. In order to overcome this, there has been considerable work on compilation of code to (typically) Boolean circuits. One work in this direction takes a different approach, and this is the SPDZ compiler (not to be confused with the SPDZ protocol) that takes high-level Python code and provides an MPC run-time environment for securely executing that code. The SPDZ compiler can deal with arithmetic and non-arithmetic operations and is extremely powerful. However, until now, the SPDZ compiler could only be used for the specific SPDZ family of protocols, making its general applicability and usefulness very limited. 
+
+In this paper, we extend the SPDZ compiler so that it can work with general underlying protocols. Our SPDZ extensions were made in mind to enable the use of SPDZ for arbitrary protocols and to make it easy for others to integrate existing and new protocols. We integrated three different types of protocols, an honest-majority protocol for computing arithmetic circuits over a field (for any number of parties), a three-party honest majority protocol for computing arithmetic circuits over the ring of integers Z2n, and the multiparty BMR protocol for computing Boolean circuits. We show that a single high-level SPDZ-Python program can be executed using all of these underlying protocols (as well as the original SPDZ protocol), thereby making SPDZ a true general run-time MPC environment.In order to be able to handle both arithmetic and non-arithmetic operations, the SPDZ compiler relies on conversions from field elements to bits and back. However, these conversions do not apply to ring elements (in particular, they require element division), and we therefore introduce new bit decomposition and recomposition protocols for the ring over integers with replicated secret sharing. These conversions are of independent interest and utilize the structure of Z2n (which is much more amenable to bit decomposition than prime-order fields), and are thus much more efficient than all previous methods. We demonstrate our compiler extensions by running a complex SQL query and a decision tree evaluation over all protocols.
+
+** My Summary
+  
+This work contains two major contributions.
+The first one is concerned with the SPDZ compiler, which is the piece of the Bristol implementation of the SPDZ protocol ([[https://github.com/bristolcrypto/SPDZ-2][old repo]], now maintained as [[https://github.com/KULeuven-COSIC/SCALE-MAMBA][Scale-Mamba]]) that is in charge of taking a high-level description of the functionality to be computed and /compile/ it into a bytecode representation that can be run by the software.
+This compiler is described in [[[araki-1][1]]].
+What the authors of this work do is enhancing this tool to support other MPC protocols beyond SPDZ.
+In particular, the protocols considered are the following:
+
+1) The protocol from [[[araki-2][2]]]. Changes to the compiler are needed since this protocol doesn't use triples.
+2) The protocol from [[[araki-3][3]],[[araki-4][4]]], instantiated over the ring $\mathbb{Z}_{2^k}$. This requires modifications to the basic set of primitives like secure comparison or bit decomposition.
+3) The BMR protocol, where the main change arises from the fact that the protocol is fundamentally different to other secret-sharing-based protocols.
+
+The second contribution of this work is precisely item 2 above, which is not really concerned with expanding the compiler itself but the virtual environment that executes the protocol, i.e. developing sub-protocols for specific tasks.
+The challenge here is that, when working modulo $2^k$, secure comparisons or secure equality checks cannot be done as it is done over fields, which is already quite well studied.
+The main reason for this is that you cannot divide by $2$ modulo $2^k$, and this (or a variation of this) is crucial in these other sub-protocols.
+The authors here identify that if you have a bit-decomposition protocol (i.e. obtain shares of the bits of a given shared value) then all these sub-protocols can be easily implemented by running their respective circuits on the bits (for example, division by $2$ is simply a right shift).
+In my opinion, this is not 100% true since many of these primitives could be computed more efficiently if one allows some form of preprocessing, as is the case with truncations, to cite an example (see the protocols by Catrina et al., for instance).
+Furthermore, the bit-decomposition proposed by the authors itself can be made more efficient by allowing preprocessing, essentially by preprocessing some random shared bits, and also the bit-decomposition protocol is not actively secure.
+
+However, although I believe that the bit-decomposition the authors propose is not the solution to /any/ basic primitive one may need, I do believe that this sub-protocol is very important and, moreover, the construction is really nice and makes explicit use of the fact that the computation is modulo a power of $2$ (and also that the protocol is based on replicated secret-sharing).
+I will not discuss the details of the bit-decomposition protocol though.
+# This makes use of the specifics of replicated secret sharing and the fact that the protocol has three parties.
+I will just say that the protocol has the extremely important feature that the shares of the bits that are obtained are themselves bits, which is not something possible when working modulo a prime, where the shares of the bits are themselves field elements.
+We exploit a similar feature in our S&P 2019 paper for the SPDZ2k protocol, and the effect of this is that whatever you use the shared bits for is going to be cheaper since your computation happens over bits.
+
+A nice thing to explore is to get an actively secure version of the bit-decomposition protocol.
+This may be easy since the protocol simply involves running certain circuit over some (binary) shares, which should be robust if the underlying additions and multiplications are robust (and multiplications can be made robust by preprocessing correct triples), but I'm not sure about this claim.
+
+*** References
+
+1) <<araki-1>>Marcel Keller, Peter Scholl, and Nigel P. Smart. An Architecture for Practical Actively Secure MPC With Dishonest Majority. In ACM CCS 2013.
+2) <<araki-2>>Y. Lindell and A. Nof. A Framework for Constructing Fast MPC over Arithmetic Circuits with Malicious Adversaries and an Honest-Majority. In the 24th ACM CCS 2017.
+3) <<araki-3>>T. Araki, A. Barak, J. Furukawa, T. Lichter, Y. Lindell, A. Nof, K. Ohara, A. Watzman and O. Weinstein. Optimized Honest-Majority MPC for Malicious Adversaries - Breaking the 1 Billion-Gate Per Second Barrier. In the 38th IEEE Symposium on Security and Privacy, 2017.
+4) <<araki-4>>T. Araki, J. Furukawa, Y. Lindell, A. Nof and K. Ohara. High-Throughput Semi-Honest Secure Three-Party Computation with an Honest Majority. In the 23rd ACM CCS 2016.
+
+
+   
+   
+      
+      
       
       
       

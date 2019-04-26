@@ -10,3 +10,4 @@ Some of them have a small summary written by me, which helps me remember what I 
 * [[wiki:2019][2019]]
 * [[wiki:2018][2018]]
 * [[wiki:2017][2017]]
+* [[wiki:2016][2016]]
