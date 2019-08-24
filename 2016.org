@@ -38,43 +38,6 @@ This approach is very useful given the asynchronous nature of the protocol.
 2) <<coretti-2>>Ben-Or, M., Kelmer, B., Rabin, T.: Asynchronous secure computations with optimal resilience (extended abstract). In: PODC. pp. 183-192 (1994).
 3) <<coretti-3>>Damgård, I., Ishai, Y.: Constant-round multiparty computation using a black-box pseudorandom generator. In: Shoup, V. (ed.) CRYPTO. Lecture Notes in Computer Science, vol. 3621, pp. 378-394. Springer (2005).   
 
-* [[https://eprint.iacr.org/2016/944][High-Throughput Secure Three-Party Computation for Malicious Adversaries and an Honest Majority (Jun Furukawa, Yehuda Lindell, Ariel Nof and Or Weinstein)]]
-Presented at EUROCRYPT 2016.
-** Short Description
-Actively Secure Three-party MPC with abort.
-
-** Abstract
-In this paper, we describe a new protocol for secure three-party computation of any functionality, with an honest majority anda malicious adversary.
-Our protocol has both an information-theoretic and computational variant, and is distinguished by extremely low communication complexity and very simple computation.
-We start from the recent semi-honest protocol of Araki et al. (ACM CCS 2016) in which the parties communicate only a single bit per AND gate, and modify it to be secure in the presence of malicious adversaries.
-Our protocol follows the paradigm of first constructing Beaver multiplication triples and then using them to verify that circuit gates are correctly computed.
-As in previous work (e.g., the so-called TinyOT and SPDZ protocols), we rely on the cut-and-choose paradigm to verify that triples are correctly constructed.
-We are able to utilize the fact that at most one of three parties is corrupted in order to construct an extremely simple and efficient method of constructing such triples.
-We also present an improved combinatorial analysis for this cut-and-choose which can be used to achieve improvements in other protocols using this approach.
-
-** My Summary
-This paper builds on top of [[[furukawa-1][1]]] to obtain a protocol with active security in the honest majority setting.
-Their protocol is phrased in the boolean setting, but /I believe/ that it also works over the ring $\mathbb Z_{2^k}$, which makes it the first protocol at that time in achieving such result.
-
-The main insight of this work is that the biggest challenge in making the protocol from [[[furukawa-1][1]]] actively secure is handling multiplication gates.
-This is because in the honest majority setting, and for the particular secret sharing scheme used, output gates are not a problem at all (in contrast to the dishonest majority setting in which you need some mechanism like MACs to ensure that parties open values correctly).
-The authors then propose a mechanism for producing correct multiplication triples which consists essentially in generating shares of random elements, multiply them using the passively secure multiplication from [[[furukawa-1][1]]], and check the correctness of some of them in a cut-and-choose way so that the remaining triples are guaranteed to be correct with high probability.
-According to the authors, this analysis is new with respect to the previous one from [[[furukawa-2][2]]].
-It is important to note though that this is only efficient when preprocessing many multiplication triples, say in the order of $2^{20}$.
-
-Once you have correct multiplication triples, you can use them to perform the multiplication in the online phase, or you can use them to check the result of a passively secure multiplication, like the one in [[[furukawa-1][1]]].
-The authors choose to follow the second approach: in the online phase they multiply using the protocol from [[[furukawa-1][1]]], which is passively secure but is very efficient.
-Then, at the end of the protocol right before opening the result, the parties use the triples to check that the multiplications of the online phase were done correctly.
-This has many benefits over using the triples directly to multiply: The multiplication protocol from [[[furukawa-1][1]]] is cheaper, involving olne 1-bit per party (whereas using triples involves twice as much).
-Furthermore, all the checks can be done in parallel, thus adding only one round to the whole protocol.
-Additionally, due to the way that the check works, its communication complexity can be made independent of the number of multiplications to check (basically it is because the check consists of verifying that several parties have the same "view" of some elements, due to the replicated nature of the secret-sharing scheme, and this can be done by simply hashing the views).
-
-Finally, I have to say that their protocol is quite efficient.
-Citing them directly: "with a statistical error of $2^{-40}$ each party needs to send only 10 bits per AND gate to one other party; for $2^{-80}$ this rises to only 16 bits per AND gate".
-      
-*** References
-1) <<furukawa-1>>Araki, T., Furukawa, J., Lindell, Y., Nof, A., Ohara, K.: High-throughput semi-honest secure three-party computation with an honest majority. In: 23rd ACM CCS 2016.
-2) <<furukawa-2>>Burra, S.S., Larraia, E., Nielsen, J.B., Nordholt, P.S., Orlandi, C., Orsini, E., Scholl, P., Smart, N.P.: High performance multi-party computation for binary circuits based on oblivious transfer.
  
 * [[https://eprint.iacr.org/2016/768][High-Throughput Semi-Honest Secure Three-Party Computation with an Honest Majority (Toshinori Araki and Jun Furukawa and Yehuda Lindell and Ariel Nof and Kazuma Ohara)]]
 Presented at CCS 2016.

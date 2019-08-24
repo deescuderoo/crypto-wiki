@@ -130,3 +130,47 @@ This may be easy since the protocol simply involves running certain circuit over
       
       
       
+
+* HyCC: Compilation of Hybrid Protocols for Practical Secure Computation
+CCS 2018
+** Short Description 
+Optimizations for compiling high-level programs to MPC programs that combine airhtmetic and binary protocols.
+
+** Abstract
+While secure multi-party computation (MPC) is a vibrant research topic and a multitude of practical MPC applications have been presented recently, their development is still a tedious task that requires expert knowledge. Previous works have made first steps in compiling high-level descriptions from various source descriptions into MPC protocols, but only looked at a limited set of protocols. 
+
+In this work we present HyCC, a tool-chain for automated compilation of ANSI C programs into hybrid protocols that efficiently and securely combine multiple MPC protocols with optimizing compilation, scheduling, and partitioning. As a result, our compiled protocols are able to achieve performance numbers that are comparable to hand-built solutions. For the MiniONN neural network (Liu et al., CCS 2017), our compiler improves performance of the resulting protocol by more than a factor of $3$. Thus, for the first time, highly efficient hybrid MPC becomes accessible for developers without cryptographic background.
+
+** My Summary
+
+In theory, a general-purpose MPC protocol can compute /any/ function.
+However, for this to be meaningful in practice, one has to design a mechanism in which any given function can be ran securely by a given MPC protocol.
+Furthermore, just like traditional compilers sometimes aim at improving efficiency by optimizing the program (e.g. preferring some instructions over others, eliminating dead code, etc.), it is desirable from an MPC compiler that it /automatically/ optimizes the given function so that the protocol execution can be as efficient as possible.
+
+This work is concerned precisely with this. 
+It presents a compiler that takes high-level programs written in C and compiles them into a description of a circuit which is more suitable for MPC protocols (in fact, it is directly compatible with ABY).
+The salient feature of this compiler is that it optimizes the program so that the execution of the MPC protocol is as efficient as possible.
+This is achieved partially by building on top of ShallowCC, which optimizes for depth (most MPC protocols get more expensive as the depth of the circuit grows).
+However, the main contribution of this work is to optimize /protocol selection/, which is concerned with determining which type of protocol (either binary, arithmetic or Yao) is more suitable for a given part of the computation.
+
+A high level overview of HyCC is the following.
+First, a program written in ANSI-C is given.
+Then, the following steps are executed (basically taken from the paper itself)
+
+1) Automated Parallelization (§3.2.1): Automated identification of code blocks that can be evaluated in parallel using external tools.
+2) Preprocessing, Lexing and Parsing (§3.2.2): Construction of an Abstract Syntax Tree (AST) from the input code.
+3) Source Code Optimization and Loop Unrolling (§3.2.3): Source-to-source compilation using static analysis.
+4) Code Decomposition (§3.2.4): Decomposition of the input program into multiple modules.
+5) Circuit Compilation (§3.2.5): Compilation of each module in the different circuit representations.
+6) Inter-Procedural Circuit Optimization (§3.2.6): Optimization of Boolean and arithmetic circuits across multiple modules.
+7) Circuit Export (§3.2.7): Writing the decomposed circuit to a file, ready for reconstruction in protocol selection.
+
+Step 4 consists of deciding which parts of the program can be considered as a "single-entity", so that the compiler can focus on optimizing them internally and also optimizing the relations among these.
+HyCC separates modules by functions (each function is a module), loops, and arithmetic expressions.
+Then, in step 5 these modules are compiled individually, and in step 6 these are optimized taking into account neighboring modules.
+
+Finally, protocol selection in HyCC is a combination of scheduling heuristics (deciding which module to run in which order) and a "straight-forward combinatorial optimization approach by enumerating all possible protocol combinations using dynamic programming."
+
+(TODO references)
+
+A word of warning: As of today, 15-06-2019, there is no code available of this framework

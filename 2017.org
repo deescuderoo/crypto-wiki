@@ -64,6 +64,43 @@ Amazing.
 
 1) <<araki-1>>J. Furukawa, Y. Lindell, A. Nof and O. Weinstein. High-Throughput Secure Three-Party Computation for Malicious Adversaries and an Honest Majority. In EUROCRYPT 2017. TODO check if this is 2016 or 2017
    
+* [[https://eprint.iacr.org/2016/944][High-Throughput Secure Three-Party Computation for Malicious Adversaries and an Honest Majority (Jun Furukawa, Yehuda Lindell, Ariel Nof and Or Weinstein)]]
+Presented at EUROCRYPT 2017.
+** Short Description
+Actively Secure Three-party MPC with abort.
+
+** Abstract
+In this paper, we describe a new protocol for secure three-party computation of any functionality, with an honest majority anda malicious adversary.
+Our protocol has both an information-theoretic and computational variant, and is distinguished by extremely low communication complexity and very simple computation.
+We start from the recent semi-honest protocol of Araki et al. (ACM CCS 2016) in which the parties communicate only a single bit per AND gate, and modify it to be secure in the presence of malicious adversaries.
+Our protocol follows the paradigm of first constructing Beaver multiplication triples and then using them to verify that circuit gates are correctly computed.
+As in previous work (e.g., the so-called TinyOT and SPDZ protocols), we rely on the cut-and-choose paradigm to verify that triples are correctly constructed.
+We are able to utilize the fact that at most one of three parties is corrupted in order to construct an extremely simple and efficient method of constructing such triples.
+We also present an improved combinatorial analysis for this cut-and-choose which can be used to achieve improvements in other protocols using this approach.
+
+** My Summary
+This paper builds on top of [[[furukawa-1][1]]] to obtain a protocol with active security in the honest majority setting.
+Their protocol is phrased in the boolean setting, but /I believe/ that it also works over the ring $\mathbb Z_{2^k}$, which makes it the first protocol at that time in achieving such result.
+
+The main insight of this work is that the biggest challenge in making the protocol from [[[furukawa-1][1]]] actively secure is handling multiplication gates.
+This is because in the honest majority setting, and for the particular secret sharing scheme used, output gates are not a problem at all (in contrast to the dishonest majority setting in which you need some mechanism like MACs to ensure that parties open values correctly).
+The authors then propose a mechanism for producing correct multiplication triples which consists essentially in generating shares of random elements, multiply them using the passively secure multiplication from [[[furukawa-1][1]]], and check the correctness of some of them in a cut-and-choose way so that the remaining triples are guaranteed to be correct with high probability.
+According to the authors, this analysis is new with respect to the previous one from [[[furukawa-2][2]]].
+It is important to note though that this is only efficient when preprocessing many multiplication triples, say in the order of $2^{20}$.
+
+Once you have correct multiplication triples, you can use them to perform the multiplication in the online phase, or you can use them to check the result of a passively secure multiplication, like the one in [[[furukawa-1][1]]].
+The authors choose to follow the second approach: in the online phase they multiply using the protocol from [[[furukawa-1][1]]], which is passively secure but is very efficient.
+Then, at the end of the protocol right before opening the result, the parties use the triples to check that the multiplications of the online phase were done correctly.
+This has many benefits over using the triples directly to multiply: The multiplication protocol from [[[furukawa-1][1]]] is cheaper, involving olne 1-bit per party (whereas using triples involves twice as much).
+Furthermore, all the checks can be done in parallel, thus adding only one round to the whole protocol.
+Additionally, due to the way that the check works, its communication complexity can be made independent of the number of multiplications to check (basically it is because the check consists of verifying that several parties have the same "view" of some elements, due to the replicated nature of the secret-sharing scheme, and this can be done by simply hashing the views).
+
+Finally, I have to say that their protocol is quite efficient.
+Citing them directly: "with a statistical error of $2^{-40}$ each party needs to send only 10 bits per AND gate to one other party; for $2^{-80}$ this rises to only 16 bits per AND gate".
+      
+*** References
+1) <<furukawa-1>>Araki, T., Furukawa, J., Lindell, Y., Nof, A., Ohara, K.: High-throughput semi-honest secure three-party computation with an honest majority. In: 23rd ACM CCS 2016.
+2) <<furukawa-2>>Burra, S.S., Larraia, E., Nielsen, J.B., Nordholt, P.S., Orlandi, C., Orsini, E., Scholl, P., Smart, N.P.: High performance multi-party computation for binary circuits based on oblivious transfer.
 * [[https://eprint.iacr.org/2017/816][A Framework for Constructing Fast MPC over Arithmetic Circuits with Malicious Adversaries and an Honest-Majority (Yehuda Lindell and Ariel Nof)]]   
 Presented at CCS 2017.
 
@@ -86,13 +123,13 @@ The idea of their construction is to begin with a passively secure protocol for 
 This is used to preprocess (potentially incorrect) triples, and also to compute (potentially incorrect) multiplication gates.
 Then the triples are used to check the correctness of the multiplications.
 This can be done in two ways:
-- Each triple is "sacrificed" to check the correctness of the multiplication (which can be seen as using the triple to multiply and checking that the result from this matches the result the parties obtained when they computed the multiplication). This is similar to what is done in SDPZ. This involves calling the opening procedure three times (two for the multiplication using the triple and another one to check the consistency of the two results).</li>
+- Each triple is "sacrificed" to check the correctness of the multiplication (which can be seen as using the triple to multiply and checking that the result from this matches the result the parties obtained when they computed the multiplication). This is similar to what is done in SDPZ. This involves calling the opening procedure three times (two for the multiplication using the triple and another one to check the consistency of the two results).
 - Apply the same idea of using one triple to perform the multiplication, but instead of opening the values one would typically open so that they becomes constants that one can multiply easily, do not open these and do the multiplication in MPC with a protocol that is only vulnerable to additive attacks.
 	  After taking some appropriate linear combination, the only thing that remains is checking that some shared value is equal to zero.
 	  The cool thing of this approach is that many checks can be handled together at the price of just a single check-to-zero by taking a random linear combination of them.
 	  This approach is nice, but it is quite complex since you need some countermeasures to the fact that the adversary can inject additive errors.
 	  For instance, the original triples coming from the protocok execution cannot be checked since there is room for a selective failure attack.
-	  Instead, these triples have to be randomized and the correctness of these is checked instead.</li> TODO
+	  Instead, these triples have to be randomized and the correctness of these is checked instead. TODO
   
 The approach above works well for large fields, and it can be extended to small fields by iterating the check several times to lower the cheating probability.
 However, for small fields the authors propose a different approach which is based on cut-and-choose, following the template from [[[lindell-1][1]]].
@@ -112,5 +149,32 @@ This is discussed by the authors in the section about related work.
 
 1) <<lindell-1>>J. Furukawa, Y. Lindell, A. Nof and O. Weinstein. High-Throughput Secure Three-Party Computation for Malicious Adversaries and an Honest Majority. In EUROCRYPT 2017, Springer (LNCS 10211), pages 225-255, 2017.
    
+* Global-Scale Secure Multiparty Computation (Xiao Wang, Samuel Ranellucci and Jonathan Katz) (TODO link)
+
+Presented at CCS 2017.
+
+** Short Description
+Actively Secure, Constant Round MPC for dishonest majority based on garbled circuits.
+
+** Abstract
+TODO
+
+** My Summary
+This paper generalizes the authenticated garbling technique from [[[wang-1][1]]], which works for two parties, to the multiparty case, to obtain a constant round protocol that is actively secure in the dishonest majority setting.
+
+The main idea behind authenticated garbling, which comes from [[[wang-1][1]]], is that the parties can have shares of the values on each wire, as well as shares of the labels.
+Using BDOZ type of shares for the values, the MACs can be automatically used as shares of the labels.
+The idea here is that the garbler cannot hurt privacy (since any changes introduced by the garbler will be independent of the inputs), nor correctness (since the garbler is forced to use the right shares that make the MACs match, how clever!).
+
+The authors here extend this to the multiparty case by considering the natural extension of BDOZ shares to the multiparty setting.
+The idea is that parties $P_2$ up to $P_n$ will generate $n-1$ garbled circuits, where the values are shared among all parties, and same with the labels.
+Later on, the evaluator, $P_1$, will go through each one of the garbled circuits in topological order, decrypting the shares needed for the next value, and the next labels for each one of the circuits.
+
+Finally, this work also shows how to generate multiplication triples with this type of sharings. TODO Read this!
+  
+
+*** References
+
+1) <<wang-1>>TODO WRK17
    
 
