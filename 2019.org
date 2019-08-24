@@ -32,4 +32,12 @@ To get BA, they take the following approach:
 3) Use the VSS as a commitment scheme to obtain a leader election protocol. This is done by letting each party cast a random vote, taking the addition of all votes to be the actual vote for some party. The party with the largest vote becomes the leader. To make sure that all parties agree on the leader without actually using BA (which would be circular), they .... TODO
 4) Get BA like in TODO(Ref) by doing a two-round echo broadcast where parties send votes, and use the leader for the cases in which there are no majority of votes for a particular bit.
 
+* [[https://eprint.iacr.org/2019/718][Improved Building Blocks for Secure Multi-Party Computation based on Secret Sharing with Honest Majority (Marina Blanton and Ahreum Kang and Chen Yuan)]]
 
+** Short Description
+Improvement on multiplication protocols and other primitives for passive Shamir and Replicated-based MPC.
+** Abstract
+Secure multi-party computation permits evaluation of any desired functionality on private data without disclosing the data to the participants and is gaining its popularity due to increasing collection of user, customer, or patient data and the need to analyze data sets distributed across different organizations without disclosing them. Because adoption of secure computation techniques depends on their performance in practice, it is important to continue improving their performance. In this work, we focus on common non-trivial operations used by many types of programs, and any advances in their performance would impact the runtime of programs that rely on them. In particular, we treat the operation of reading or writing an element of an array at a private location and integer multiplication. The focus of this work is secret sharing setting with honest majority in the semi-honest security model. We demonstrate improvement of the proposed techniques over prior constructions via analytical and empirical evaluation. 
+** My Summary
+The authors improve private-array access protocols and also multiplication protocols, for the settings of Replicated and Shamir Secret Sharing.
+Particularly interesting (to me) is the improvement to the multiplication: They use the double-sharing idea but slightly modified. To get double sharings, they first sample a random t-shared value [r]_t using PRSS, and then 'cast' this naively to [r]_2t and rerandomize by adding a fresh [0]_2t, which is generated with PRZS.
