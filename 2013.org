@@ -1,0 +1,36 @@
+#+TITLE: Papers from 2013
+#+DESCRIPTION:
+#+KEYWORDS:
+#+STARTUP:  content
+#+OPTIONS: toc:1 H:4 num:1
+
+- [[wiki:index][Index]]
+  
+* An Architecture for Practical Actively Secure MPC with Dishonest Majority
+CCS 2013
+** Short Description
+A framework to read and execute MPC programs using the SPDZ protocol.
+
+** Abstract
+We present a runtime environment for executing secure programs via a multi-party computation protocol in the preprocessing model. The runtime environment is general and allows arbitrary reactive computations to be performed. A particularly novel aspect is that it automatically determines the minimum number of rounds needed for a computation, given a specific instruction sequence, and it then uses this to minimize the overall cost of the computation. Various experiments are reported on, on various non-trivial functionalities. We show how, by utilizing the ability of modern processors to execute multiple threads at a time, one can obtain various tradeoffs between latency and throughput.
+
+** My Summary
+
+This work focuses on the practical aspects of implementing MPC protocols.
+Specifically, the authors basically describe the engineering details behind the original implementation of Bristol-SPDZ.
+This is concerned with several aspects like
+
+- How are MPC programs specified;
+- How are these programs converted into a representation that can be undertood by the protocol;
+- How does the execution of the program proceed.
+
+For the first item, the authors consider a high-level representation in a Python-like language (or, more precisely, a Python library) which has several constructs like addition/multiplication of shared values, fixed-point arithmetic, etc.
+Then a compiler, which will be known later on as the /SDPZ compiler/, takes this high level representation and turns it into some bytecode representation of the function. 
+The main interesting feature of this compiler is that it batches communication that can happen in parallel in order to minimize the number of rounds.
+It does this by constructing the instruction graph and determining the depth of each instruction that involves opening some values (this is done by running Dijkstra's algorithm to find the shortest path from a given node to the input nodes, which in turn determines its depth).
+
+Regarding the last item, the bytecode is executed by a virtual machine that interprets each instruction.
+These instructions are rather primitive (this framework follows the RISC design) and they mostly involve moving values around, performing simple arithmetic and reconstructing shared values.
+Higher-level operations (like multiplying two shares) are present in the high-level language and compiled to these lower-level constructs.
+
+Finally, the authors present some benchmarks of their framework.

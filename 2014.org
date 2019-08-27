@@ -1,0 +1,31 @@
+#+TITLE: Papers from 2014
+#+DESCRIPTION:
+#+KEYWORDS:
+#+STARTUP:  content
+#+OPTIONS: toc:1 H:4 num:1
+
+- [[wiki:index][Index]]
+  
+* Practical Secure Decision Tree Learning in a Teletreatment Application
+Financial Cryptography and Data Security 2014.
+** Short Description
+How to train Decision Trees on private data using MPC.
+
+** Abstract
+In this paper we develop a range of practical cryptographic protocols for secure decision tree learning, a primary problem in privacy preserving data mining. We focus on particular variants of the well-known ID3 algorithm allowing a high level of security and performance at the same time. Our approach is basically to design special-purpose secure multiparty computations, hence privacy will be guaranteed as long as the honest parties form a sufficiently large quorum.
+
+Our main ID3 protocol will ensure that the entire database of transactions remains secret except for the information leaked from the decision tree output by the protocol. We instantiate the underlying ID3 algorithm such that the performance of the protocol is enhanced considerably, while at the same time limiting the information leakage from the decision tree. Concretely, we apply a threshold for the number of transactions below which the decision tree will consist of a single leaf—limiting information leakage. We base the choice of the “best” predicting attribute for the root of a decision tree on the Gini index rather than the well-known information gain based on Shannon entropy, and we develop a particularly efficient protocol for securely finding the attribute of highest Gini index. Moreover, we present advanced secure ID3 protocols, which generate the decision tree as a secret output, and which allow secure lookup of predictions (even hiding the transaction for which the prediction is made). In all cases, the resulting decision trees are of the same quality as commonly obtained for the ID3 algorithm.
+
+We have implemented our protocols in Python using VIFF, where the underlying protocols are based on Shamir secret sharing. Due to a judicious use of secret indexing and masking techniques, we are able to code the protocols in a recursive manner without any loss of efficiency. To demonstrate practical feasibility we apply the secure ID3 protocols to an automated health care system of a real-life rehabilitation organization.
+
+** My Summary
+
+The authors consider the problem of securely growing a decision tree on data that is secret-shared among several parties.
+This work does not assume anything about the underlying secret-sharing scheme, besides being able to compute homomorphic operations securely.
+They also assume that sum-of-products of the form $\sum_i [a_i]\cdot[b_i]$ can be computed efficiently at the communication cost of one single multiplication (this property holds for Shamir SS and Replicated SS under certain multiplication mechanisms).
+
+The protocol works by adapting the ID3, for training decision trees in the clear, to the MPC setting.
+Furthermore, instead of using the usual entropy splitting rule, the authors use the Gini index, which avoids computing on logarithms.
+
+Finally, even though the resulting model is public "by default", the authors also explore several ways to extend this so that the model is kept secret.
+
